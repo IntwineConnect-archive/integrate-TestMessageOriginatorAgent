@@ -14,6 +14,8 @@ utils.setup_logging()
 _log = logging.getLogger(__name__)
 
 class TestMessageOriginatorAgent(Agent):
+    EventID = 0
+    
     def __init__(self, config_path, **kwargs):
         super(TestMessageOriginatorAgent, self).__init__(**kwargs)
         self.config = utils.load_config(config_path)
@@ -31,12 +33,15 @@ class TestMessageOriginatorAgent(Agent):
     def publish_test_message(self):
         '''publish test REST API messages '''
         print('publishing a new CTAevent message...')
+        
+        self.EventID += 1
         now = datetime.utcnow().isoformat(' ') + 'Z'
         
-        mesdict = {'message_target': 'all',
-                   'message_subject': 'new_event',
-                   'event_name': 'shed',
-                   'event_duration': '4'
+        mesdict = {"message_target": "all",
+                   "message_subject": "new_event",
+                   "event_uid": str(self.EventID),
+                   "event_name": "shed",
+                   "event_duration": "4"
                    }
         
         message = json.dumps(mesdict)
