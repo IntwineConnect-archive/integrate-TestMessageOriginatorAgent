@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import sys
 import json
@@ -27,9 +27,8 @@ class TestMessageOriginatorAgent(Agent):
     @Core.receiver('onsetup')
     def setup(self, sender, **kwargs):
         _log.info(self.config['message'])
-        self._agent_id = self.config['agentid']
+        self._agent_id = self.config['agentid']    
     
-    @Core.periodic(settings.MESSAGE_INTERVAL)
     def publish_test_message(self):
         '''publish test REST API messages '''
         print('publishing a new CTAevent message...')
@@ -42,11 +41,19 @@ class TestMessageOriginatorAgent(Agent):
         mesdict["message_target"] = "all"
         mesdict["message_subject"] = "new_event"
         mesdict["event_uid"] = str(self.EventID)
+        #set the start time for a minute from now
+        mesdict["ADR_start_time"] = (datetime.utcnow() + timedelta(minutes = 1)).isoformat() + 'Z'
         
         message = json.dumps(mesdict)
         print(message)
         
         self.vip.pubsub.publish('pubsub','CTAevent',{}, message)
+        
+    @Core.periodic(settings.MESSAGE_INTERVAL)    
+    def periodic_messaging(self):
+        ''' post two messages to be delivered at almost the same future time'''
+        self.publish_test_message()
+        
         
     def supplyMessageDict(self,choice):
         if choice == 1:
