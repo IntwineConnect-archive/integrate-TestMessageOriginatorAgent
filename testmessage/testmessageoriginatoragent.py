@@ -41,6 +41,7 @@ class TestMessageOriginatorAgent(Agent):
         mesdict["message_target"] = "all"
         mesdict["message_subject"] = "new_event"
         mesdict["event_uid"] = str(self.EventID)
+        mesdict["priority"] = "1"
         #set the start time for a minute from now
         mesdict["ADR_start_time"] = (datetime.utcnow() + timedelta(minutes = 1)).isoformat() + 'Z'
         
@@ -51,9 +52,33 @@ class TestMessageOriginatorAgent(Agent):
         
     @Core.periodic(settings.MESSAGE_INTERVAL)    
     def periodic_messaging(self):
-        ''' post two messages to be delivered at almost the same future time'''
-        self.publish_test_message()
-        
+        ''' post messages to be delivered at almost the same future time'''
+        #self.publish_test_message()
+        self.EventID += 1
+        self.publishADRmessage(self.EventID % 5)
+    
+    def publishADRmessage(self,choice):
+        start = (datetime.utcnow() + timedelta(minutes = 1)).isoformat() + 'Z'
+        mesdict = {"event_ID": str(self.EventID),
+                   "event_name": "simple_signal",
+                   "priority": str(choice % 2),
+                   "start_time": start,
+                   "duration": "45S"
+                   }
+        if choice == 0:
+            mesdict["signalPayload"] = 0
+        elif choice == 1:
+            mesdict["signalPayload"] = 1
+        elif choice == 2:
+            mesdict["signalPayload"] = 2
+        elif choice == 3:
+            mesdict["signalPayload"] = 3
+        elif choice == 4:
+            mesdict["signalPayload"] = 4    
+            
+        messtr = json.dumps(mesdict)
+        print("publishing an openADR message to openADRevent: {message}".format(message = messtr))
+        self.vip.pubsub.publish('pubsub','openADRevent',{}, messtr)
         
     def supplyMessageDict(self,choice):
         if choice == 1:
