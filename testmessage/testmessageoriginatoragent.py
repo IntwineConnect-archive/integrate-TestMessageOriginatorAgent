@@ -55,7 +55,31 @@ class TestMessageOriginatorAgent(Agent):
         ''' post messages to be delivered at almost the same future time'''
         #self.publish_test_message()
         self.EventID += 1
-        self.publishADRmessage(self.EventID % 5)
+        #self.publishADRmessage(self.EventID % 5)
+        self.publishESIFtest(self.EventID % 5)
+    
+    def publishESIFtest(self,choice):
+        start = (datetime.utcnow() + timedelta(minutes = 1)).isoformat() + 'Z'
+        mesdict = {"event_ID": str(self.EventID),
+                   "event_name": "simple_signal",
+                   "priority": "1",
+                   "start_time": start,
+                   "duration": "60S"}
+        if choice == 0:
+            mesdict["signalPayload"] = 0
+        elif choice == 1:
+            mesdict["signalPayload"] = 1
+        elif choice == 2:
+            mesdict["signalPayload"] = 2
+        elif choice == 3:
+            mesdict["signalPayload"] = 3
+        elif choice == 4:
+            mesdict["signalPayload"] = 4    
+            
+        messtr = json.dumps(mesdict)
+        print("publishing an openADR message to openADRevent: {message}".format(message = messtr))
+        self.vip.pubsub.publish('pubsub','openADRevent',{}, messtr)
+      
     
     def publishADRmessage(self,choice):
         start = (datetime.utcnow() + timedelta(minutes = 1)).isoformat() + 'Z'
